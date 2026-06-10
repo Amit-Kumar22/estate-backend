@@ -4,7 +4,7 @@ export interface ILead extends Document {
   name: string;
   mobile: string;
   email: string;
-  source: 'contact' | 'brochure' | 'unlock_content';
+  source: 'contact' | 'brochure' | 'unlock_content' | 'project_detail';
   project?: mongoose.Types.ObjectId;
   projectName?: string;
   message?: string;
@@ -22,7 +22,7 @@ const leadSchema = new Schema<ILead>(
     email: { type: String, required: true, lowercase: true, trim: true },
     source: {
       type: String,
-      enum: ['contact', 'brochure', 'unlock_content'],
+      enum: ['contact', 'brochure', 'unlock_content', 'project_detail'],
       required: true,
     },
     project: { type: Schema.Types.ObjectId, ref: 'Project' },
