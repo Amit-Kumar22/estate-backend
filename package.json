@@ -7,7 +7,8 @@
     "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "seed": "ts-node src/utils/seed.ts"
+    "seed": "ts-node src/utils/seed.ts",
+    "seed:blogs": "ts-node scripts/seedBlogs.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -6,6 +6,8 @@ import galleryRoutes from './galleryRoutes';
 import awardRoutes from './awardRoutes';
 import dashboardRoutes from './dashboardRoutes';
 import settingsRoutes from './settingsRoutes';
+import whyChooseUsRoutes from './whyChooseUsRoutes';
+import blogRoutes from './blogRoutes';
 
 const router = Router();
 
@@ -16,5 +18,7 @@ router.use('/gallery', galleryRoutes);
 router.use('/awards', awardRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/settings', settingsRoutes);
+router.use('/why-choose-us', whyChooseUsRoutes);
+router.use('/blogs', blogRoutes);
 
 export default router;

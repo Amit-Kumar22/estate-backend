@@ -11,16 +11,20 @@ const createUploadDir = (dir: string): void => {
 };
 
 const storage = multer.diskStorage({
-  destination: (_req: Request, file: Express.Multer.File, cb) => {
+  destination: (req: Request, file: Express.Multer.File, cb) => {
     let uploadDir = 'uploads/';
     const mimetype = file.mimetype;
-    if (mimetype.startsWith('image/')) {
+
+    if (file.fieldname === 'featuredImage') {
+      uploadDir += 'blog-images/';
+    } else if (mimetype.startsWith('image/')) {
       uploadDir += 'images/';
     } else if (mimetype === 'application/pdf') {
       uploadDir += 'documents/';
     } else {
       uploadDir += 'misc/';
     }
+
     createUploadDir(uploadDir);
     cb(null, uploadDir);
   },
