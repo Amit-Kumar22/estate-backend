@@ -8,6 +8,7 @@ import dashboardRoutes from './dashboardRoutes';
 import settingsRoutes from './settingsRoutes';
 import whyChooseUsRoutes from './whyChooseUsRoutes';
 import blogRoutes from './blogRoutes';
+import reviewRoutes from './reviewRoutes';
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use('/dashboard', dashboardRoutes);
 router.use('/settings', settingsRoutes);
 router.use('/why-choose-us', whyChooseUsRoutes);
 router.use('/blogs', blogRoutes);
+router.use('/reviews', reviewRoutes);
 
 export default router;
