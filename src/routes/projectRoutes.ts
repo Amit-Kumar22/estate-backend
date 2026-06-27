@@ -20,7 +20,7 @@ router.use(protect);
 router.post(
   '/',
   uploadFields([
-    { name: 'heroImages', maxCount: 10 },
+    { name: 'heroImages', maxCount: 20 },
     { name: 'brochure', maxCount: 1 },
   ]),
   createProject
@@ -28,7 +28,7 @@ router.post(
 router.patch(
   '/:id',
   uploadFields([
-    { name: 'heroImages', maxCount: 10 },
+    { name: 'heroImages', maxCount: 20 },
     { name: 'brochure', maxCount: 1 },
   ]),
   updateProject

@@ -72,16 +72,20 @@ export const updateProject = catchAsync(async (req: Request, res: Response) => {
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
   const body = { ...req.body };
 
-  ['highlights', 'amenities', 'configuration', 'heroImages', 'floorPlans', 'interiorPhotos'].forEach((field) => {
+  ['highlights', 'amenities', 'configuration', 'floorPlans', 'interiorPhotos'].forEach((field) => {
     if (body[field] && typeof body[field] === 'string') {
       try { body[field] = JSON.parse(body[field]); } catch { /* ignore */ }
     }
   });
 
-  if (files?.heroImages) {
+  if (files?.heroImages?.length) {
     const newImages = files.heroImages.map((f) => `/uploads/images/${f.filename}`);
-    body.heroImages = [...(body.heroImages || []), ...newImages];
+    // Fetch existing images from DB so uploads are appended, not replaced
+    const existing = await Project.findById(req.params.id).select('heroImages');
+    const currentImages: string[] = existing?.heroImages ?? [];
+    body.heroImages = [...currentImages, ...newImages];
   }
+
   if (files?.brochure?.[0]) {
     body.brochureUrl = `/uploads/documents/${files.brochure[0].filename}`;
   }
