@@ -9,6 +9,7 @@ import settingsRoutes from './settingsRoutes';
 import whyChooseUsRoutes from './whyChooseUsRoutes';
 import blogRoutes from './blogRoutes';
 import reviewRoutes from './reviewRoutes';
+import publicReviewRoutes from './publicReviewRoutes';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/settings', settingsRoutes);
 router.use('/why-choose-us', whyChooseUsRoutes);
 router.use('/blogs', blogRoutes);
 router.use('/reviews', reviewRoutes);
+router.use('/public-reviews', publicReviewRoutes);
 
 export default router;
