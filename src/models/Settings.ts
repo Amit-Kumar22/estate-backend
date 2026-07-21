@@ -14,9 +14,18 @@ export interface ISiteSettings {
   companyAddress: string;
   whatsappNumber: string;
   whatsappMessage: string;
-  heroVideoUrl: string;
+  /** Multiple background videos — rendered as a carousel on the frontend hero section */
+  heroVideoUrls: string[];
+  /** Multiple background images — rendered as a carousel on the frontend hero section */
+  heroBackgroundImages: string[];
   heroHeadline: string;
   heroSubheadline: string;
+  heroStat1Value: string;
+  heroStat1Label: string;
+  heroStat2Value: string;
+  heroStat2Label: string;
+  heroStat3Value: string;
+  heroStat3Label: string;
   metaTitle: string;
   metaDescription: string;
   logoUrl: string;

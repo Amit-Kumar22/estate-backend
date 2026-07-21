@@ -17,6 +17,8 @@ const storage = multer.diskStorage({
 
     if (file.fieldname === 'featuredImage') {
       uploadDir += 'blog-images/';
+    } else if (mimetype.startsWith('video/')) {
+      uploadDir += 'videos/';
     } else if (mimetype.startsWith('image/')) {
       uploadDir += 'images/';
     } else if (mimetype === 'application/pdf') {
@@ -45,16 +47,20 @@ const fileFilter = (
 ): void => {
   const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
   const allowedDocTypes = ['application/pdf'];
-  const allowedTypes = [...allowedImageTypes, ...allowedDocTypes];
+  const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
+  const allowedTypes = [...allowedImageTypes, ...allowedDocTypes, ...allowedVideoTypes];
 
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(createError('Only images (JPEG, PNG, WebP) and PDF files are allowed!', 400) as unknown as null, false);
+    cb(createError('Only images (JPEG, PNG, WebP), videos (MP4, WebM, OGG) and PDF files are allowed!', 400) as unknown as null, false);
   }
 };
 
 const maxFileSize = Number(process.env.MAX_FILE_SIZE) || 10 * 1024 * 1024;
+// Hero background videos are much larger than images/docs, so uploads that can
+// include video files get a higher ceiling than the default.
+const maxMediaFileSize = Number(process.env.MAX_VIDEO_FILE_SIZE) || 100 * 1024 * 1024;
 
 export const upload = multer({
   storage,
@@ -62,7 +68,15 @@ export const upload = multer({
   limits: { fileSize: maxFileSize },
 });
 
+const uploadMedia = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: maxMediaFileSize },
+});
+
 export const uploadSingle = (fieldName: string) => upload.single(fieldName);
 export const uploadMultiple = (fieldName: string, maxCount = 10) =>
   upload.array(fieldName, maxCount);
 export const uploadFields = (fields: multer.Field[]) => upload.fields(fields);
+/** Same as uploadFields but with a raised file-size limit, for routes that accept video uploads */
+export const uploadMediaFields = (fields: multer.Field[]) => uploadMedia.fields(fields);
