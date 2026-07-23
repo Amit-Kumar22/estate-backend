@@ -1,7 +1,7 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { Request } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { createError } from './errorHandler';
 
 const createUploadDir = (dir: string): void => {
@@ -78,5 +78,27 @@ export const uploadSingle = (fieldName: string) => upload.single(fieldName);
 export const uploadMultiple = (fieldName: string, maxCount = 10) =>
   upload.array(fieldName, maxCount);
 export const uploadFields = (fields: multer.Field[]) => upload.fields(fields);
-/** Same as uploadFields but with a raised file-size limit, for routes that accept video uploads */
-export const uploadMediaFields = (fields: multer.Field[]) => uploadMedia.fields(fields);
+
+/**
+ * Same as uploadFields but with a raised file-size limit, for routes that accept video uploads.
+ * Wraps multer's callback so MulterError (e.g. file-too-large) is converted into an AppError
+ * instead of being passed through as a non-operational error (generic 500 in production).
+ */
+export const uploadMediaFields = (fields: multer.Field[]) => {
+  const handler = uploadMedia.fields(fields);
+  return (req: Request, res: Response, next: NextFunction): void => {
+    handler(req, res, (err: unknown) => {
+      if (!err) return next();
+
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          const maxMb = Math.floor(maxMediaFileSize / (1024 * 1024));
+          return next(createError(`File too large. Maximum allowed size is ${maxMb}MB.`, 413));
+        }
+        return next(createError(err.message, 400));
+      }
+
+      next(err);
+    });
+  };
+};
