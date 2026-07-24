@@ -1,6 +1,27 @@
 import { Request, Response } from 'express';
+import fs from 'fs/promises';
+import path from 'path';
 import Settings from '../models/Settings';
 import { catchAsync } from '../middlewares/errorHandler';
+
+/**
+ * Hero videos are stored on disk under `uploads/videos/` relative to the
+ * process cwd (see middlewares/upload.ts, which uses the same cwd-relative
+ * path). When a video is dropped from heroVideoUrls, delete the underlying
+ * file too so it isn't left orphaned on disk/still servable at its old URL.
+ */
+const deleteUploadedFile = async (fileUrl: string): Promise<void> => {
+  if (typeof fileUrl !== 'string' || !fileUrl.startsWith('/uploads/')) return;
+
+  const absolutePath = path.join(process.cwd(), fileUrl.replace(/^\//, ''));
+  try {
+    await fs.unlink(absolutePath);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+      console.error(`Failed to delete hero video file at ${absolutePath}:`, err);
+    }
+  }
+};
 
 const DEFAULT_SETTINGS = {
   companyName: 'Real Estate Platform',
@@ -105,11 +126,25 @@ export const updateSettings = catchAsync(async (req: Request, res: Response) => 
 
   const updated = normalizeHeroMediaLists({ ...currentValue, ...body });
 
+  // Any hero video URL present before this update but missing from the final
+  // list was removed by the admin (or replaced) — delete its file from disk.
+  const previousVideoUrls = Array.isArray(currentValue.heroVideoUrls)
+    ? (currentValue.heroVideoUrls as string[])
+    : [];
+  const nextVideoUrls = Array.isArray(updated.heroVideoUrls)
+    ? (updated.heroVideoUrls as string[])
+    : [];
+  const removedVideoUrls = previousVideoUrls.filter((url) => !nextVideoUrls.includes(url));
+
   const settings = await Settings.findOneAndUpdate(
     { key: 'site_settings' },
     { key: 'site_settings', value: updated },
     { new: true, upsert: true }
   );
+
+  if (removedVideoUrls.length) {
+    await Promise.all(removedVideoUrls.map(deleteUploadedFile));
+  }
 
   res.status(200).json({ status: 'success', data: { settings: settings.value } });
 });
