@@ -16,6 +16,7 @@ export interface IProject extends Document {
   name: string;
   slug: string;
   status: 'current' | 'upcoming' | 'completed';
+  priority: number;
   location: string;
   latitude: number;
   longitude: number;
@@ -61,6 +62,7 @@ const projectSchema = new Schema<IProject>(
       enum: ['current', 'upcoming', 'completed'],
       default: 'current',
     },
+    priority: { type: Number, default: 0 },
     location: { type: String, required: true },
     latitude: { type: Number, default: 0 },
     longitude: { type: Number, default: 0 },
@@ -88,6 +90,7 @@ const projectSchema = new Schema<IProject>(
 // slug unique index is already created by `unique: true` in the field definition above.
 // Only add the non-unique indexes here.
 projectSchema.index({ status: 1 });
+projectSchema.index({ priority: 1 });
 projectSchema.index({ featured: 1 });
 projectSchema.index({ name: 'text', location: 'text', description: 'text' });
 

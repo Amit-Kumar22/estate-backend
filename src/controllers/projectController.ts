@@ -15,7 +15,7 @@ export const getAllProjects = catchAsync(async (req: Request, res: Response) => 
 
   const skip = (Number(page) - 1) * Number(limit);
   const [projects, total] = await Promise.all([
-    Project.find(query).sort({ featured: -1, createdAt: -1 }).skip(skip).limit(Number(limit)),
+    Project.find(query).sort({ priority: 1, createdAt: -1 }).skip(skip).limit(Number(limit)),
     Project.countDocuments(query),
   ]);
 
@@ -99,6 +99,22 @@ export const updateProject = catchAsync(async (req: Request, res: Response) => {
   res.status(200).json({ status: 'success', data: { project } });
 });
 
+export const updateProjectPriority = catchAsync(async (req: Request, res: Response) => {
+  const { priority } = req.body;
+  if (priority === undefined || Number.isNaN(Number(priority))) {
+    throw createError('A numeric priority is required.', 400);
+  }
+
+  const project = await Project.findByIdAndUpdate(
+    req.params.id,
+    { priority: Number(priority) },
+    { new: true, runValidators: true }
+  );
+  if (!project) throw createError('Project not found.', 404);
+
+  res.status(200).json({ status: 'success', data: { project } });
+});
+
 export const deleteProject = catchAsync(async (req: Request, res: Response) => {
   const project = await Project.findById(req.params.id);
   if (!project) throw createError('Project not found.', 404);
@@ -115,7 +131,7 @@ export const getProjectsForMap = catchAsync(async (_req: Request, res: Response)
 
 export const getFeaturedProjects = catchAsync(async (_req: Request, res: Response) => {
   const projects = await Project.find({ isActive: true, featured: true })
-    .sort({ createdAt: -1 })
+    .sort({ priority: 1, createdAt: -1 })
     .limit(8);
   res.status(200).json({ status: 'success', data: { projects } });
 });

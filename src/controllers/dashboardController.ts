@@ -16,6 +16,7 @@ export const getDashboardStats = catchAsync(async (_req: Request, res: Response)
     brochureDownloads,
     contactRequests,
     unlockLeads,
+    projectsByPriority,
   ] = await Promise.all([
     Project.countDocuments({ isActive: true }),
     Lead.countDocuments(),
@@ -23,6 +24,9 @@ export const getDashboardStats = catchAsync(async (_req: Request, res: Response)
     Lead.countDocuments({ source: 'brochure' }),
     Lead.countDocuments({ source: 'contact' }),
     Lead.countDocuments({ source: 'unlock_content' }),
+    Project.find({ isActive: true })
+      .select('name slug status priority featured price location heroImages')
+      .sort({ priority: 1, createdAt: -1 }),
   ]);
 
   // Monthly leads chart (last 6 months)
@@ -88,6 +92,7 @@ export const getDashboardStats = catchAsync(async (_req: Request, res: Response)
       monthlyLeads,
       projectWiseLeads,
       recentLeads,
+      projectsByPriority,
     },
   });
 });
