@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import {
   getAllProjects, getProjectBySlug, getProjectById, createProject,
-  updateProject, deleteProject, getProjectsForMap, getFeaturedProjects,
+  updateProject, updateProjectPriority, deleteProject, getProjectsForMap, getFeaturedProjects,
   deleteProjectImage,
 } from '../controllers/projectController';
 import { protect } from '../middlewares/auth';
@@ -33,6 +33,7 @@ router.patch(
   ]),
   updateProject
 );
+router.patch('/:id/priority', updateProjectPriority);
 router.delete('/:id', deleteProject);
 router.delete('/:id/image', deleteProjectImage);
 router.get('/:id', getProjectById);
