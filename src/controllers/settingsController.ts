@@ -41,6 +41,13 @@ const DEFAULT_SETTINGS = {
   heroStat2Label: '',
   heroStat3Value: '',
   heroStat3Label: '',
+  familyLegacyStats: [
+    { value: 1500, suffix: '+', label: 'Homes Delivered', icon: 'Home' },
+    { value: 13, suffix: '+', label: 'Projects Completed', icon: 'Building2' },
+    { value: 2, suffix: '', label: 'Generations', icon: 'Users' },
+    { value: 13, suffix: '+', label: 'Years of Trust', icon: 'Star' },
+    { value: 100, suffix: '%', label: 'Customer Commitment', icon: 'CheckCircle' },
+  ] as Array<{ value: number; suffix: string; label: string; icon: string }>,
   metaTitle: 'Real Estate Platform - Premium Properties',
   metaDescription: 'Explore premium residential projects across India.',
   logoUrl: '',
@@ -71,11 +78,37 @@ const normalizeHeroMediaLists = (value: Record<string, unknown>): Record<string,
   return normalized;
 };
 
+/**
+ * familyLegacyStats always arrives from the admin form as a JSON string
+ * (multipart/form-data has no array type) and updateSettings parses it back
+ * to an array before saving — but a doc saved before that parsing existed,
+ * or any other path that skips it, can leave the raw string sitting in
+ * MongoDB. Guard reads so a stored string (or any non-array) self-heals
+ * instead of crashing consumers that expect an array.
+ */
+const normalizeFamilyLegacyStats = (value: Record<string, unknown>): Record<string, unknown> => {
+  const normalized = { ...value };
+  const raw = normalized.familyLegacyStats;
+
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      normalized.familyLegacyStats = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      normalized.familyLegacyStats = [];
+    }
+  } else if (raw !== undefined && !Array.isArray(raw)) {
+    normalized.familyLegacyStats = [];
+  }
+
+  return normalized;
+};
+
 export const getSettings = catchAsync(async (_req: Request, res: Response) => {
   const settingsDoc = await Settings.findOne({ key: 'site_settings' });
-  const settings = normalizeHeroMediaLists(
+  const settings = normalizeFamilyLegacyStats(normalizeHeroMediaLists(
     (settingsDoc?.value as Record<string, unknown>) || DEFAULT_SETTINGS
-  );
+  ));
   res.status(200).json({ status: 'success', data: { settings } });
 });
 
@@ -94,6 +127,9 @@ export const updateSettings = catchAsync(async (req: Request, res: Response) => 
   if (body.heroBackgroundImages && typeof body.heroBackgroundImages === 'string') {
     try { body.heroBackgroundImages = JSON.parse(body.heroBackgroundImages); } catch { /* ignore */ }
   }
+  if (body.familyLegacyStats && typeof body.familyLegacyStats === 'string') {
+    try { body.familyLegacyStats = JSON.parse(body.familyLegacyStats); } catch { /* ignore */ }
+  }
 
   const logoOrFaviconFile = files?.file?.[0];
   if (logoOrFaviconFile) {
@@ -103,7 +139,9 @@ export const updateSettings = catchAsync(async (req: Request, res: Response) => 
   }
 
   const existing = await Settings.findOne({ key: 'site_settings' });
-  const currentValue = normalizeHeroMediaLists((existing?.value as Record<string, unknown>) || {});
+  const currentValue = normalizeFamilyLegacyStats(
+    normalizeHeroMediaLists((existing?.value as Record<string, unknown>) || {})
+  );
 
   // Newly uploaded hero videos/images are appended to whichever list the
   // admin already retained (body.heroVideoUrls/heroBackgroundImages reflects
@@ -124,7 +162,7 @@ export const updateSettings = catchAsync(async (req: Request, res: Response) => 
     body.heroBackgroundImages = [...retained, ...uploadedImageUrls];
   }
 
-  const updated = normalizeHeroMediaLists({ ...currentValue, ...body });
+  const updated = normalizeFamilyLegacyStats(normalizeHeroMediaLists({ ...currentValue, ...body }));
 
   // Any hero video URL present before this update but missing from the final
   // list was removed by the admin (or replaced) — delete its file from disk.

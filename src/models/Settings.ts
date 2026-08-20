@@ -26,6 +26,13 @@ export interface ISiteSettings {
   heroStat2Label: string;
   heroStat3Value: string;
   heroStat3Label: string;
+  /** Achievement stats rendered on the "Family Legacy" section of the homepage */
+  familyLegacyStats: {
+    value: number;
+    suffix: string;
+    label: string;
+    icon: string;
+  }[];
   metaTitle: string;
   metaDescription: string;
   logoUrl: string;
