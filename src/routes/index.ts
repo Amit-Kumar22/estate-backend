@@ -10,6 +10,7 @@ import whyChooseUsRoutes from './whyChooseUsRoutes';
 import blogRoutes from './blogRoutes';
 import reviewRoutes from './reviewRoutes';
 import publicReviewRoutes from './publicReviewRoutes';
+import complaintRoutes from './complaintRoutes';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use('/why-choose-us', whyChooseUsRoutes);
 router.use('/blogs', blogRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/public-reviews', publicReviewRoutes);
+router.use('/complaints', complaintRoutes);
 
 export default router;

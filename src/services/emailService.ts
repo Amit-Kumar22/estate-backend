@@ -241,3 +241,92 @@ Received at: ${new Date().toLocaleString('en-IN')}`;
     text,
   });
 };
+
+export const sendComplaintNotification = async (complaint: {
+  name: string;
+  email: string;
+  mobile?: string;
+  subject: string;
+  message: string;
+}): Promise<void> => {
+  const adminEmail = process.env.SMTP_USER || process.env.FROM_EMAIL;
+  if (!adminEmail) return;
+
+  const siteName = process.env.FROM_NAME || 'Real Estate Platform';
+  const adminPanelUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/complaints`;
+
+  const text = `New Complaint Received
+
+Name:    ${complaint.name}
+Email:   ${complaint.email}
+${complaint.mobile ? `Mobile:  ${complaint.mobile}\n` : ''}Subject: ${complaint.subject}
+
+"${complaint.message}"
+
+View in admin panel: ${adminPanelUrl}
+
+Received at: ${new Date().toLocaleString('en-IN')}`;
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+
+        <tr><td style="background:#dc2626;padding:24px 32px;">
+          <p style="margin:0;font-size:18px;font-weight:bold;color:#fff;">New Complaint Submitted</p>
+          <p style="margin:4px 0 0;font-size:13px;color:#fecaca;">A visitor has raised a complaint — please review</p>
+        </td></tr>
+
+        <tr><td style="padding:28px 32px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+            <tr>
+              <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;font-size:13px;width:30%;"><strong>Name</strong></td>
+              <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:13px;color:#111827;">${complaint.name}</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;font-size:13px;"><strong>Email</strong></td>
+              <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:13px;color:#111827;">${complaint.email}</td>
+            </tr>
+            ${complaint.mobile ? `<tr>
+              <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;font-size:13px;"><strong>Mobile</strong></td>
+              <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:13px;color:#111827;">${complaint.mobile}</td>
+            </tr>` : ''}
+            <tr>
+              <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;font-size:13px;"><strong>Subject</strong></td>
+              <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:13px;color:#111827;">${complaint.subject}</td>
+            </tr>
+            <tr>
+              <td style="padding:12px 0;color:#6b7280;font-size:13px;vertical-align:top;"><strong>Message</strong></td>
+              <td style="padding:12px 0;font-size:13px;color:#374151;font-style:italic;line-height:1.6;">&ldquo;${complaint.message}&rdquo;</td>
+            </tr>
+          </table>
+
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;">
+            <tr><td align="center">
+              <a href="${adminPanelUrl}" style="display:inline-block;background:#dc2626;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-size:14px;font-weight:bold;">
+                Open Admin Panel
+              </a>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="background:#f9fafb;padding:14px 32px;border-top:1px solid #e5e7eb;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#9ca3af;">&copy; ${new Date().getFullYear()} ${siteName}</p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  await sendEmail({
+    to: adminEmail,
+    subject: `New Complaint: ${complaint.subject} — from ${complaint.name}`,
+    html,
+    text,
+  });
+};
